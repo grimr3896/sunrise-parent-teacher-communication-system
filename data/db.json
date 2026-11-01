@@ -1,0 +1,255 @@
+{
+  "users": [
+    {
+      "id": "u_admin",
+      "role": "admin",
+      "name": "Grace Otieno",
+      "email": "admin@sunrise.test",
+      "password": "f8947e61221b1be7b5344c85d7a664f1:814b192a681a30f4c2efda8d9f51c281a65d2778f04ea8e13f6cfa81cac8e821d3914b81bddbb5e0f52e4b4cbc0798091739fc6e9d0561bd23e83c06a890299c",
+      "phone": "0700000001",
+      "active": true,
+      "createdAt": "2026-10-07T06:26:57.658Z"
+    },
+    {
+      "id": "u_teacher",
+      "role": "teacher",
+      "name": "James Ochieng",
+      "email": "teacher@sunrise.test",
+      "password": "53b30deb20bbbb378cb9b1d4c80b745b:5ae322b1fdcd3f24f99b44c2040eefed38f1ef8906ac5374b67b16bf7f8a5e5b24d795f712b64913695652229e18cfed5107dfc8d6a074bdf7bb35bea2aaa377",
+      "phone": "0700000002",
+      "active": true,
+      "createdAt": "2026-10-07T06:26:57.708Z"
+    },
+    {
+      "id": "u_parent",
+      "role": "parent",
+      "name": "Mary Achieng",
+      "email": "parent@sunrise.test",
+      "password": "7f607602b33a708b6945627bfd366ef4:d23f99d05a843d12641a9d486113ea83596cf0b3b80fc1c4145b2547345d63e68ce8020278539f4aa05276977f43144439bc13c8e1afb1821ef6f58373040d39",
+      "phone": "0700000003",
+      "active": true,
+      "createdAt": "2026-10-07T06:26:57.756Z"
+    },
+    {
+      "id": "u_1791359439920_6797a7",
+      "role": "admin",
+      "name": "tony langat",
+      "email": "tony@sunrise.test",
+      "password": "1aedf4bde2bac2526c25d6fbb4434774:1fc3af7664e9342f48af493b4196f2b2c30455aa0535e7dff38c402259c244230a4c8cdcc05089099caa3210ed9d83c868d8b80502eaf227e972be44e48a77fe",
+      "phone": "",
+      "active": true,
+      "createdAt": "2026-10-07T07:50:40.015Z"
+    }
+  ],
+  "messages": [
+    {
+      "id": "m1",
+      "senderId": "u_teacher",
+      "recipientId": "u_parent",
+      "subject": "Parents Meeting",
+      "body": "Dear parent, the next parents meeting will be held on Friday at 10:00 AM in the school hall.",
+      "status": "sent",
+      "acknowledged": true,
+      "createdAt": "2026-10-07T06:26:57.756Z",
+      "replies": [
+        {
+          "id": "r_1791354732010_d08518",
+          "userId": "u_teacher",
+          "body": "hello",
+          "createdAt": "2026-10-07T06:32:12.010Z"
+        },
+        {
+          "id": "r_1791810284652_dcf60b",
+          "userId": "u_teacher",
+          "body": "ok",
+          "createdAt": "2026-10-12T13:04:44.652Z"
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "id": "e1",
+      "title": "Parents Meeting",
+      "description": "Term meeting for parents and guardians.",
+      "date": "2026-10-16",
+      "time": "10:00",
+      "location": "School Hall",
+      "createdBy": "u_admin",
+      "createdAt": "2026-10-07T06:26:57.756Z"
+    }
+  ],
+  "notifications": [
+    {
+      "id": "n_1791810284652_8a2b13",
+      "userId": "u_parent",
+      "title": "New message reply",
+      "body": "James Ochieng replied to “Parents Meeting”",
+      "type": "message",
+      "read": false,
+      "createdAt": "2026-10-12T13:04:44.652Z"
+    },
+    {
+      "id": "n_1791354732011_d5de26",
+      "userId": "u_parent",
+      "title": "New message reply",
+      "body": "James Ochieng replied to “Parents Meeting”",
+      "type": "message",
+      "read": true,
+      "createdAt": "2026-10-07T06:32:12.011Z"
+    },
+    {
+      "id": "n1",
+      "userId": "u_parent",
+      "title": "New Parents Meeting Message",
+      "body": "You have received a new message from a teacher.",
+      "type": "message",
+      "read": true,
+      "createdAt": "2026-10-07T06:26:57.756Z"
+    },
+    {
+      "id": "n2",
+      "userId": "u_teacher",
+      "title": "System Ready",
+      "body": "Your teacher communication dashboard is ready.",
+      "type": "system",
+      "read": false,
+      "createdAt": "2026-10-07T06:26:57.756Z"
+    }
+  ],
+  "history": [
+    {
+      "id": "h_1791810284652_3b5a1b",
+      "action": "Reply to Message",
+      "userId": "u_teacher",
+      "details": "Replied to “Parents Meeting”",
+      "createdAt": "2026-10-12T13:04:44.652Z"
+    },
+    {
+      "id": "h_1791810277074_09fe6b",
+      "action": "Login",
+      "userId": "u_teacher",
+      "details": "User logged into the system",
+      "createdAt": "2026-10-12T13:04:37.074Z"
+    },
+    {
+      "id": "h_1791810251430_26ca59",
+      "action": "Logout",
+      "userId": "u_admin",
+      "details": "User logged out",
+      "createdAt": "2026-10-12T13:04:11.430Z"
+    },
+    {
+      "id": "h_1791810230139_658e30",
+      "action": "Login",
+      "userId": "u_admin",
+      "details": "User logged into the system",
+      "createdAt": "2026-10-12T13:03:50.139Z"
+    },
+    {
+      "id": "h_1791810206941_be2fce",
+      "action": "Logout",
+      "userId": "u_teacher",
+      "details": "User logged out",
+      "createdAt": "2026-10-12T13:03:26.941Z"
+    },
+    {
+      "id": "h_1791810178099_aec2ad",
+      "action": "Login",
+      "userId": "u_teacher",
+      "details": "User logged into the system",
+      "createdAt": "2026-10-12T13:02:58.099Z"
+    },
+    {
+      "id": "h_1791359440015_fe5856",
+      "action": "Create User",
+      "userId": "u_admin",
+      "details": "Created admin account for tony langat",
+      "createdAt": "2026-10-07T07:50:40.015Z"
+    },
+    {
+      "id": "h_1791359354835_b14778",
+      "action": "Login",
+      "userId": "u_admin",
+      "details": "User logged into the system",
+      "createdAt": "2026-10-07T07:49:14.835Z"
+    },
+    {
+      "id": "h_1791359343677_eccc30",
+      "action": "Logout",
+      "userId": "u_parent",
+      "details": "User logged out",
+      "createdAt": "2026-10-07T07:49:03.677Z"
+    },
+    {
+      "id": "h_1791359143527_b98b60",
+      "action": "Login",
+      "userId": "u_parent",
+      "details": "User logged into the system",
+      "createdAt": "2026-10-07T07:45:43.527Z"
+    },
+    {
+      "id": "h_1791355505485_69cb2f",
+      "action": "Logout",
+      "userId": "u_parent",
+      "details": "User logged out",
+      "createdAt": "2026-10-07T06:45:05.485Z"
+    },
+    {
+      "id": "h_1791354796691_59cddb",
+      "action": "Acknowledge Message",
+      "userId": "u_parent",
+      "details": "Acknowledged “Parents Meeting”",
+      "createdAt": "2026-10-07T06:33:16.692Z"
+    },
+    {
+      "id": "h_1791354776288_8f2e3d",
+      "action": "Login",
+      "userId": "u_parent",
+      "details": "User logged into the system",
+      "createdAt": "2026-10-07T06:32:56.288Z"
+    },
+    {
+      "id": "h_1791354749062_15640c",
+      "action": "Logout",
+      "userId": "u_teacher",
+      "details": "User logged out",
+      "createdAt": "2026-10-07T06:32:29.062Z"
+    },
+    {
+      "id": "h_1791354732011_945d28",
+      "action": "Reply to Message",
+      "userId": "u_teacher",
+      "details": "Replied to “Parents Meeting”",
+      "createdAt": "2026-10-07T06:32:12.011Z"
+    },
+    {
+      "id": "h_1791354716863_d0226a",
+      "action": "Login",
+      "userId": "u_teacher",
+      "details": "User logged into the system",
+      "createdAt": "2026-10-07T06:31:56.863Z"
+    },
+    {
+      "id": "h_1791354685650_4fc817",
+      "action": "Logout",
+      "userId": "u_admin",
+      "details": "User logged out",
+      "createdAt": "2026-10-07T06:31:25.650Z"
+    },
+    {
+      "id": "h_1791354664546_6e32e6",
+      "action": "Login",
+      "userId": "u_admin",
+      "details": "User logged into the system",
+      "createdAt": "2026-10-07T06:31:04.546Z"
+    },
+    {
+      "id": "h_1791354418653_1a3eef",
+      "action": "Login",
+      "userId": "u_parent",
+      "details": "User logged into the system",
+      "createdAt": "2026-10-07T06:26:58.653Z"
+    }
+  ]
+}
