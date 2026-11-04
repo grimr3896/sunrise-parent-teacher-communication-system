@@ -409,14 +409,16 @@ async function createUser(e) {
   const email = f.email.value.trim().toLowerCase();
   const role = f.role.value;
   const password = f.password.value;
-  const button = f.querySelector('button[type="submit"]');
+  const button = f.querySelector('button[type="submit"], button:not([type])');
 
   if (!full_name) return fail(new Error('Please enter the user’s full name.'));
   if (password.length < 8) return fail(new Error('Password must be at least 8 characters'));
 
   try {
-    button.disabled = true;
-    button.textContent = 'Creating user…';
+    if (button) {
+      button.disabled = true;
+      button.textContent = 'Creating user…';
+    }
 
     // Create accounts securely on the server. This avoids sending a confirmation
     // email and prevents sign-up from replacing the administrator's session.
