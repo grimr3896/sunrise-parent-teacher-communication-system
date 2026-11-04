@@ -405,42 +405,47 @@ function showUserForm() {
 async function createUser(e) {
   e.preventDefault();
   const f = e.target;
-  const full_name = f.full_name.value.trim(),
-    email = f.email.value.trim().toLowerCase(),
-    role = f.role.value,
-    password = f.password.value;
+  const full_name = f.full_name.value.trim();
+  const email = f.email.value.trim().toLowerCase();
+  const role = f.role.value;
+  const password = f.password.value;
+  const button = f.querySelector('button[type="submit"]');
 
+  if (!full_name) return fail(new Error('Please enter the user’s full name.'));
   if (password.length < 8) return fail(new Error('Password must be at least 8 characters'));
 
   try {
-    // Keep the admin session so it can be restored after sign-up
-    const { data: { session: adminSession } } = await sb.auth.getSession();
+    button.disabled = true;
+    button.textContent = 'Creating user…';
 
-    // Create the account
-    const { data, error } = await sb.auth.signUp({ email, password, options: { data: { full_name } } });
-    if (error) throw error;
-
-    // Restore the admin session if sign-up switched to the new user
-    if (data.session && adminSession) {
-      await sb.auth.setSession({ access_token: adminSession.access_token, refresh_token: adminSession.refresh_token });
+    // Create accounts securely on the server. This avoids sending a confirmation
+    // email and prevents sign-up from replacing the administrator's session.
+    const { data, error } = await sb.functions.invoke('admin-create-user', {
+      body: { full_name, email, role, password }
+    });
+    if (error) {
+      let detail = error.message || 'Could not create the user.';
+      try {
+        const response = error.context;
+        if (response && typeof response.json === 'function') {
+          const payload = await response.json();
+          if (payload.error) detail = payload.error;
+        }
+      } catch (_) {}
+      throw new Error(detail);
     }
-    if (!data.user) throw new Error('User was not created.');
+    if (data?.error) throw new Error(data.error);
+    if (!data?.ok) throw new Error('The server did not confirm that the account was created.');
 
-    // Wait for the profile row, then set name, email, role and status
-    let updated = false;
-    for (let i = 0; i < 8; i++) {
-      const { error: updateError } = await sb.from('profiles')
-        .update({ full_name, email, role, is_active: true })
-        .eq('id', data.user.id);
-      if (!updateError) { updated = true; break; }
-      await new Promise(r => setTimeout(r, 350));
-    }
-    if (!updated) throw new Error('Account was created, but its role could not be assigned. Check email confirmation and profile creation in Supabase.');
-
-    toast('User account created successfully');
+    toast('User account created successfully. Email confirmation is not required.');
     render();
   } catch (err) {
     fail(err);
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = 'Create user';
+    }
   }
 }
 
