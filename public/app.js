@@ -439,8 +439,8 @@ async function createUser(e) {
     if (data?.error) throw new Error(data.error);
     if (!data?.ok) throw new Error('The server did not confirm that the account was created.');
 
+    await render();
     toast('User account created successfully. Email confirmation is not required.');
-    render();
   } catch (err) {
     fail(err);
   } finally {
