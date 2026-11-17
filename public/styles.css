@@ -416,6 +416,9 @@ button {
     border-color:var(--teal)
 }
 
+/* ==========================================================
+   15. TABLET AND SMALL LAPTOP RESPONSIVE LAYOUT
+   ========================================================== */
 @media(max-width:900px) {
     .shell {
         grid-template-columns:1fr
@@ -444,6 +447,9 @@ button {
 
 }
 
+/* ==========================================================
+   16. MOBILE RESPONSIVE LAYOUT
+   ========================================================== */
 @media(max-width:600px) {
     .main {
         padding:16px
@@ -512,6 +518,9 @@ button {
     margin:10px 0
 }
 
+/* ==========================================================
+   19. MOBILE INLINE FORM OVERRIDE
+   ========================================================== */
 @media(max-width:600px) {
     .form-grid {
         grid-template-columns:1fr
