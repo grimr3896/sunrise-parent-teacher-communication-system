@@ -188,46 +188,94 @@ async function messages() {
 // 5. SEND MESSAGE AND ATTACHMENTS
 // ============================================================
 async function sendPage() {
-  // ---------- 5.1 Load active parents ----------
-  const { data: parents, error } = await sb.from('profiles')
-    .select('id,full_name,email')
-    .eq('role', 'parent')
+  if (state.profile.role !== 'teacher') {
+    throw new Error('Only teachers can use this message composer.');
+  }
+
+  // ---------- 5.1 Load active parents and administrators ----------
+  // Teachers may contact parents or send a private message to an administrator.
+  const { data: recipients, error } = await sb.from('profiles')
+    .select('id,full_name,email,role')
+    .in('role', ['parent', 'admin'])
     .eq('is_active', true)
     .order('full_name');
   if (error) throw error;
-  const parentOptions = parents.map(p => `<option value="${p.id}">${esc(p.full_name)}${p.email ? ' — ' + esc(p.email) : ''}</option>`).join('');
+
+  const parents = recipients.filter(p => p.role === 'parent');
+  const admins = recipients.filter(p => p.role === 'admin');
+
+  const parentOptions = parents.map(p =>
+    `<option value="${p.id}">${esc(p.full_name)}${p.email ? ' — ' + esc(p.email) : ''}</option>`
+  ).join('');
+  const adminOptions = admins.map(p =>
+    `<option value="${p.id}">${esc(p.full_name)}${p.email ? ' — ' + esc(p.email) : ''}</option>`
+  ).join('');
+
+  const options = [
+    admins.length
+      ? `<optgroup label="School Administrators">${admins.length > 1 ? `<option value="__all_admins__">All active administrators (${admins.length})</option>` : ''}${adminOptions}</optgroup>`
+      : '',
+    parents.length
+      ? `<optgroup label="Parents">${parents.length > 1 ? `<option value="__all_parents__">All active parents (${parents.length})</option>` : ''}${parentOptions}</optgroup>`
+      : ''
+  ].join('');
+
   // ---------- 5.2 Render the form ----------
-  layout(`<div class="section"><h3>Send Message</h3><p class="muted">Choose one parent or send the same message to every active parent.</p>${parents.length ? `<form id="sendForm"><div class="field"><label for="recipient">Send to</label><select id="recipient" name="recipient" required><option value="" disabled selected>Choose a recipient</option><option value="__all__">All active parents (${parents.length})</option>${parentOptions}</select></div><div class="field"><label for="subject">Subject</label><input id="subject" name="subject" required maxlength="200"></div><div class="field"><label for="body">Message</label><textarea id="body" name="body" required></textarea></div><div class="field"><label for="attachment">Attachment (optional, maximum 10 MB)</label><input id="attachment" name="attachment" type="file"></div><div class="actions"><button id="sendButton" class="btn primary" type="submit">Send Message</button></div><p id="recipientHint" class="muted" aria-live="polite">Select a parent or All active parents.</p></form>` : `<div class="empty">There are currently no active parent accounts to message.</div>`}</div>`, 'Send Message');
+  const hasRecipients = parents.length > 0 || admins.length > 0;
+  layout(`<div class="section"><h3>Send Message</h3><p class="muted">Send a message directly to a school administrator, an individual parent, or a group of parents.</p>${hasRecipients ? `<form id="sendForm"><div class="field"><label for="recipient">Send to</label><select id="recipient" name="recipient" required><option value="" disabled selected>Choose a recipient</option>${options}</select></div><div class="field"><label for="subject">Subject</label><input id="subject" name="subject" required maxlength="200"></div><div class="field"><label for="body">Message</label><textarea id="body" name="body" required></textarea></div><div class="field"><label for="attachment">Attachment (optional, maximum 10 MB)</label><input id="attachment" name="attachment" type="file"></div><div class="actions"><button id="sendButton" class="btn primary" type="submit">Send Message</button></div><p id="recipientHint" class="muted" aria-live="polite">Choose an administrator or parent to message.</p></form>` : `<div class="empty">There are no active administrator or parent accounts available to receive messages.</div>`}</div>`, 'Send Message');
+
   const form = document.getElementById('sendForm');
   if (!form) return;
   const recipientSelect = form.elements.recipient;
   const hint = document.getElementById('recipientHint');
-  // ---------- 5.3 Recipient hint ----------
+
+  // ---------- 5.3 Explain who will receive the message ----------
   recipientSelect.addEventListener('change', () => {
-    hint.textContent = recipientSelect.value === '__all__'
-      ? `This message will be delivered individually to all ${parents.length} active parents.`
-      : 'This message will be sent to the selected parent.';
+    const value = recipientSelect.value;
+    if (value === '__all_admins__') {
+      hint.textContent = `This message will be delivered individually to all ${admins.length} active school administrators.`;
+    } else if (value === '__all_parents__') {
+      hint.textContent = `This message will be delivered individually to all ${parents.length} active parents.`;
+    } else {
+      const selected = recipients.find(p => p.id === value);
+      hint.textContent = selected
+        ? `This message will be sent privately to ${selected.full_name} (${selected.role === 'admin' ? 'school administrator' : 'parent'}).`
+        : 'Choose a recipient.';
+    }
   });
-  // ---------- 5.4 Form submission ----------
+
+  // ---------- 5.4 Send the message ----------
   form.onsubmit = async e => {
     e.preventDefault();
     const button = document.getElementById('sendButton');
     try {
-      // Validate recipient, subject and body
       const recipientValue = recipientSelect.value;
-      if (!recipientValue) throw new Error('Please choose a parent or All active parents.');
+      if (!recipientValue) throw new Error('Please choose a recipient.');
+
       const subject = form.elements.subject.value.trim();
       const body = form.elements.body.value.trim();
       if (!subject || !body) throw new Error('Please enter both a subject and a message.');
-      const recipients = recipientValue === '__all__' ? parents.map(p => p.id) : [recipientValue];
-      if (!recipients.length) throw new Error('There are no active parents to receive this message.');
+
+      let targetProfiles;
+      if (recipientValue === '__all_admins__') {
+        targetProfiles = admins;
+      } else if (recipientValue === '__all_parents__') {
+        targetProfiles = parents;
+      } else {
+        targetProfiles = recipients.filter(p => p.id === recipientValue);
+      }
+
+      const recipientIds = targetProfiles.map(p => p.id);
+      if (!recipientIds.length) throw new Error('The selected recipient is no longer available. Refresh and try again.');
+
       button.disabled = true;
       button.textContent = 'Sending…';
-      // Upload attachment (optional)
+
+      // Upload an optional attachment to the sender's private storage folder.
       let attachment_path = null;
       const file = form.elements.attachment.files[0];
       if (file) {
-        if (file.size > 10 * 1024 * 1024) throw new Error('Attachment must be 10 MB or smaller');
+        if (file.size > 10 * 1024 * 1024) throw new Error('Attachment must be 10 MB or smaller.');
         const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
         attachment_path = state.user.id + '/' + crypto.randomUUID() + '-' + safe;
         const { error: uploadError } = await sb.storage.from('communication-files').upload(attachment_path, file, {
@@ -236,14 +284,29 @@ async function sendPage() {
         });
         if (uploadError) throw uploadError;
       }
-      // Insert one message row per recipient
-      const rows = recipients.map(id => ({ sender_id: state.user.id, recipient_id: id, subject, body, attachment_path }));
+
+      // The database trigger creates a notification and history entry for each recipient.
+      const rows = recipientIds.map(id => ({
+        sender_id: state.user.id,
+        recipient_id: id,
+        subject,
+        body,
+        attachment_path
+      }));
       const { error: insertError } = await sb.from('messages').insert(rows);
       if (insertError) throw insertError;
-      // Success: notify and reset the form
-      toast(recipients.length === 1 ? 'Message sent successfully' : `Message sent successfully to ${recipients.length} active parents.`);
+
+      const targetLabel = recipientValue === '__all_admins__'
+        ? `${recipientIds.length} school administrators`
+        : recipientValue === '__all_parents__'
+          ? `${recipientIds.length} active parents`
+          : targetProfiles[0].role === 'admin'
+            ? 'the school administrator'
+            : targetProfiles[0].full_name;
+
+      toast(`Message sent successfully to ${targetLabel}.`);
       form.reset();
-      hint.textContent = 'Select a parent or All active parents.';
+      hint.textContent = 'Choose an administrator or parent to message.';
     } catch (err) {
       fail(err);
     } finally {
@@ -252,7 +315,6 @@ async function sendPage() {
     }
   };
 }
-
 
 
 // ============================================================
