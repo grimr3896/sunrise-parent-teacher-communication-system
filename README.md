@@ -12,7 +12,8 @@ Supabase-connected web application for Sunrise Primary School, Kisumu.
 ## Features
 - Secure email/password sign-in through Supabase Auth
 - Role-based dashboards for administrators, teachers and parents
-- Teacher/admin messaging and parent acknowledgements
+- Teacher-to-administrator direct messaging, teacher-to-parent messaging, and parent acknowledgements
+- Automatic in-app notifications to message recipients
 - Parent replies using linked message records
 - School events and automatic event notifications
 - Message notifications and read status
