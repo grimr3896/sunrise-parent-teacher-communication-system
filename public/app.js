@@ -117,7 +117,7 @@ const navItems = () => {
   } else if (state.profile.role === 'parent') {
     c.push(['messages', 'Inbox'], ['events', 'School Events'], ['notifications', 'Notifications'], ['history', 'History']);
   } else {
-    c.push(['users', 'Users'], ['messages', 'Communications'], ['events', 'Events'], ['notifications', 'Notifications'], ['history', 'History']);
+    c.push(['inbox', 'Teacher Messages'], ['users', 'Users'], ['messages', 'Communications'], ['events', 'Events'], ['notifications', 'Notifications'], ['history', 'History']);
   }
 
   return c;
@@ -133,6 +133,7 @@ async function render() {
   try {
     if (state.page === 'dashboard') return dashboard();
     if (state.page === 'messages') return messages();
+    if (state.page === 'inbox') return adminInbox();
     if (state.page === 'send') return sendPage();
     if (state.page === 'events') return events();
     if (state.page === 'notifications') return notifications();
@@ -161,7 +162,7 @@ async function getMessages() {
 // ---------- 4.2 Component: message card ----------
 function messageCard(m) {
   const incoming = m.recipient_id === state.user.id;
-  return `<div class="message"><h4>${esc(m.subject)} <span class="badge">${incoming ? 'Received' : 'Sent'}</span></h4><div class="meta">${incoming ? 'From' : 'To'}: ${esc(incoming ? m.sender?.full_name : m.recipient?.full_name)} · ${fmt(m.sent_at)}</div><div class="body">${esc(m.body)}</div>${m.attachment_path ? `<div class="actions"><button class="btn secondary" onclick="openAttachment('${esc(m.attachment_path)}')">View attachment</button></div>` : ''}<div class="meta">${m.acknowledged_at ? 'Acknowledged ' + fmt(m.acknowledged_at) : incoming ? 'Awaiting acknowledgement' : ''}</div><div class="actions">${incoming && !m.acknowledged_at ? `<button class="btn secondary" onclick="ack('${m.id}')">Acknowledge</button>` : ''}<button class="btn secondary" onclick="reply('${m.id}','${esc(m.subject).replace(/'/g, "\\'")}','${incoming ? m.sender_id : m.recipient_id}')">Respond</button></div><div id="reply-${m.id}"></div></div>`;
+  return `<div class="message"><h4>${esc(m.subject)} <span class="badge">${incoming ? 'Received' : 'Sent'}</span></h4><div class="meta">${incoming ? 'From' : 'To'}: ${esc(incoming ? m.sender?.full_name : m.recipient?.full_name)} · ${fmt(m.sent_at)}</div><div class="body">${esc(m.body)}</div>${m.attachment_path ? `<div class="actions"><button class="btn secondary" onclick="openAttachment('${esc(m.attachment_path)}')">View attachment</button></div>` : ''}<div class="meta">${m.acknowledged_at ? 'Acknowledged ' + fmt(m.acknowledged_at) : incoming ? 'Awaiting acknowledgement' : ''}</div><div class="actions">${incoming && state.profile.role === 'parent' && !m.acknowledged_at ? `<button class="btn secondary" onclick="ack('${m.id}')">Acknowledge</button>` : ''}${incoming && state.profile.role === 'admin' && !m.read_at ? `<button class="btn secondary" onclick="markMessageRead('${m.id}')">Mark as Read</button>` : ''}<button class="btn secondary" onclick="reply('${m.id}','${esc(m.subject).replace(/'/g, "\\'")}','${incoming ? m.sender_id : m.recipient_id}')">Respond</button></div><div id="reply-${m.id}"></div></div>`;
 }
 // ---------- 4.3 Page: dashboard ----------
 async function dashboard() {
@@ -183,6 +184,28 @@ async function dashboard() {
 async function messages() {
   const d = await getMessages();
   layout(`<div class="section"><h3>Communication History</h3>${d.map(messageCard).join('') || '<div class="empty">No messages found.</div>'}</div>`, 'Messages');
+}
+
+// ---------- 4.5 Administrator inbox: messages addressed to this admin ----------
+async function adminInbox() {
+  if (state.profile.role !== 'admin') {
+    throw new Error('This inbox is only available to school administrators.');
+  }
+
+  const allMessages = await getMessages();
+  const inbox = allMessages.filter(m => m.recipient_id === state.user.id);
+  const unread = inbox.filter(m => !m.read_at).length;
+
+  layout(`<div class="section">
+    <div class="top">
+      <div>
+        <h3>Messages from Teachers</h3>
+        <p class="muted">Messages addressed directly to your administrator account.</p>
+      </div>
+      <span class="badge">${unread} unread</span>
+    </div>
+    ${inbox.map(messageCard).join('') || '<div class="empty">No messages have been sent to your account yet.</div>'}
+  </div>`, 'Teacher Messages');
 }
 // ============================================================
 // 5. SEND MESSAGE AND ATTACHMENTS
@@ -344,6 +367,21 @@ async function ack(id) {
     fail(e);
   }
 }
+// ---------- 6.2.1 Mark an administrator inbox message as read ----------
+async function markMessageRead(id) {
+  try {
+    const { error } = await sb.from('messages')
+      .update({ read_at: new Date().toISOString() })
+      .eq('id', id)
+      .eq('recipient_id', state.user.id);
+    if (error) throw error;
+    toast('Message marked as read.');
+    render();
+  } catch (e) {
+    fail(e);
+  }
+}
+
 // ---------- 6.3 Show the reply form ----------
 function reply(id, subject, otherId) {
   const box = document.getElementById('reply-' + id);
